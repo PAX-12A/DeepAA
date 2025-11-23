@@ -27,9 +27,9 @@ _enable_utf8_console()
 
 # parameters
 model_path = "model/train_1912_model.json" # or "model/model_light.json"train_1912_model.json
-weight_path = "model/train_1912_e00_vl0.84850.hdf5" # or "model/weight_light.json"
+weight_path = "model/train_1912_e02_vl0.64413.hdf5" # or "model/weight_light.json"
 
-image_path = 'sample images/original images/20 original.png' # put the path of the image that you convert.
+image_path = 'sample images/original images/23 original.png' # put the path of the image that you convert.
 new_width = 0 # adjust the width of the image. the original width is used if new_width = 0.
 input_shape = [32, 32, 1]
 
