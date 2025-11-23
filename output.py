@@ -7,12 +7,33 @@ import pandas as pd
 from PIL import Image
 import pickle
 import os
+# put this at the very top of your script (works for Python 3.6+)
+import sys, io, os
+
+def _enable_utf8_console():
+    # only on Windows
+    if os.name != 'nt':
+        return
+    # best-effort: wrap stdout/stderr with UTF-8 TextIOWrapper (replace invalid chars)
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    except Exception:
+        # 某些运行环境可能没有 buffer，这里忽略错误以保证兼容性
+        pass
+
+_enable_utf8_console()
 
 
 # parameters
-model_path = "model/model.json" # or "model/model_light.json"
-weight_path = "model/weight.hdf5" # or "model/weight_light.json"
-image_path = 'sample images/original images/21 original.png' # put the path of the image that you convert.
+# model_path = "model/model_light.json" # or "model/model_light.json"
+# weight_path = "model/weight_light.hdf5" # or "model/weight_light.json"
+model_path = "train_1912_model.json" # or "model/model_light.json"train_1912_model.json
+weight_path = "train_1912_e00_vl0.84850.hdf5" # or "model/weight_light.json"
+
+
+
+image_path = 'sample images/original images/05 original.png' # put the path of the image that you convert.
 new_width = 0 # adjust the width of the image. the original width is used if new_width = 0.
 input_shape = [64, 64, 1]
 
@@ -123,6 +144,15 @@ for slide in range(18):
                 + '_slide' + str(slide) + '.png'
     img_aa.save(save_path)
 
-    f=open(save_path[:-4] + '.txt', 'w')
-    f.writelines(text)
-    f.close()
+    # f=open(save_path[:-4] + '.txt', 'w')
+    # f.writelines(text)
+    # f.close()
+
+    with open(save_path[:-4] + '.txt', 'w', encoding='utf-8') as f:
+        f.writelines(text)
+
+# "dogdog   dog    dogdogdog"
+# "d       o   g       d"
+# "d       ogdog       d"
+# "d       o   g       d"
+# "dogdog  d   o       g"

@@ -17,6 +17,12 @@ import pandas as pd
 import math
 from multiprocessing import Pool
 
+##
+import os
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+
 
 def CBRD(inputs, filters=64, kernel_size=(3,3), droprate=0.5):
     x = Conv2D(filters, kernel_size, padding='same',
@@ -34,34 +40,58 @@ def DBRD(inputs, units=4096, droprate=0.5):
     x = Dropout(droprate)(x)
     return x
 
+# def CNN(input_shape=None, classes=1000):
+#     inputs = Input(shape=input_shape)
+
+#     # Block 1
+#     x = GaussianNoise(0.3)(inputs)
+#     x = CBRD(x, 64)
+#     x = CBRD(x, 64)
+#     x = MaxPooling2D()(x)
+
+#     # Block 2
+#     x = CBRD(x, 128)
+#     x = CBRD(x, 128)
+#     x = MaxPooling2D()(x)
+
+#     # Block 3
+#     x = CBRD(x, 256)
+#     x = CBRD(x, 256)
+#     x = CBRD(x, 256)
+#     x = MaxPooling2D()(x)
+
+#     # Classification block
+#     x = Flatten(name='flatten')(x)
+#     x = DBRD(x, 4096)
+#     x = DBRD(x, 4096)
+#     x = Dense(classes, activation='softmax', name='predictions')(x)
+
+#     model = Model(inputs=inputs, outputs=x)
+
+#     return model
+
 def CNN(input_shape=None, classes=1000):
     inputs = Input(shape=input_shape)
 
-    # Block 1
-    x = GaussianNoise(0.3)(inputs)
-    x = CBRD(x, 64)
-    x = CBRD(x, 64)
+    # Block 1（减少通道数量）
+    x = GaussianNoise(0.1)(inputs)
+    x = CBRD(x, 16)   # 原64
     x = MaxPooling2D()(x)
 
     # Block 2
-    x = CBRD(x, 128)
-    x = CBRD(x, 128)
+    x = CBRD(x, 32)   # 原128
     x = MaxPooling2D()(x)
 
-    # Block 3
-    x = CBRD(x, 256)
-    x = CBRD(x, 256)
-    x = CBRD(x, 256)
+    # Block 3（删去一层 + 降通道）
+    x = CBRD(x, 64)   # 原256
     x = MaxPooling2D()(x)
 
     # Classification block
     x = Flatten(name='flatten')(x)
-    x = DBRD(x, 4096)
-    x = DBRD(x, 4096)
+    x = DBRD(x, 256, droprate=0.3)  # 原4096
     x = Dense(classes, activation='softmax', name='predictions')(x)
 
     model = Model(inputs=inputs, outputs=x)
-
     return model
 
 
@@ -151,9 +181,12 @@ def train_generator(df, img_dir, input_size, batch_size, num_label, slide,
 
 def train():
     # parameter
-    num_epoch = 256
-    batch_size = 64
-    input_shape = [64,64,1]
+    # num_epoch = 256
+    num_epoch = 3
+    # batch_size = 64
+    batch_size = 128
+    # input_shape = [64,64,1]
+    input_shape = [32, 32, 1]
     learning_rate = 0.001
     df_path = "data/data_500.csv"
     char_list_path = "data/char_list_500.csv"
@@ -187,7 +220,8 @@ def train():
 
     format = "%H%M"
     ts = time.strftime(format)
-    save_path = "model/" + path.splitext(__file__)[0] + "_" + ts
+    save_path = path.splitext(__file__)[0] + "_" + ts
+    #save_path = "model/" + path.splitext(__file__)[0] + "_" + ts
 
     json_string = model.to_json()
     with open(save_path + '_model.json', "w") as f:
